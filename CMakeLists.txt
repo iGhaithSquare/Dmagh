@@ -12,11 +12,15 @@ add_executable(dmagh)
 target_sources(dmagh PRIVATE ${SOURCES})
 
 set(DMAGH_WINDOW_API "GLFW" CACHE STRING "Window Api to Use")
-
 set_property(CACHE DMAGH_WINDOW_API PROPERTY STRINGS
     GLFW
     ANDROID)
-    
+
+set(DMAGH_RENDERING_API "OpenGl3_3" CACHE STRING "Rendering API to Use")
+set_property(CACHE DMAGH_RENDERING_API PROPERTY STRINGS
+    OpenGl3_3
+    OpenGlEs)
+
 include(Dependencies.cmake)
 
 add_custom_command(TARGET dmagh POST_BUILD 

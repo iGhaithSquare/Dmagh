@@ -24,6 +24,10 @@ if(DMAGH_WINDOW_API STREQUAL "GLFW")
     target_compile_definitions(dmagh PRIVATE DMAGH_WINDOW_GLFW)
 endif()
 
+if(DMAGH_RENDERING_API STREQUAL "OpenGl3_3")
+    target_compile_definitions(dmagh PRIVATE DMAGH_RENDERER_OPENGL3_3)
+endif()
+
 
 find_package(GLEW REQUIRED)
 target_link_libraries(dmagh PRIVATE GLEW::GLEW

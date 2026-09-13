@@ -4,11 +4,19 @@
 void error_callback(int error, const char* description){
     GAVEN_WARN("Error: %s\n", description);
 }
-void *create_window(void){
+void *create_window(int width,int height){
     GLFWwindow* Win;
     GAVEN_ASSERT(glfwInit(),"Initializing glfw failed");
     glfwSetErrorCallback(error_callback);
-    Win=glfwCreateWindow(1280,720,"DMAGH",NULL,NULL);
+
+
+    #ifdef DMAGH_RENDERER_OPENGL3_3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
+    #endif
+
+    Win=glfwCreateWindow(width,height,"DMAGH",NULL,NULL);
     GAVEN_ASSERT(Win,"Window creation failed");
     glfwMakeContextCurrent(Win);
     return Win;

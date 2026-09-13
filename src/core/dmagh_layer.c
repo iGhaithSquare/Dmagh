@@ -1,18 +1,22 @@
 #include "dmagh_layer.h"
 #include <stdlib.h>
 #include "../platform/window/window.h"
-#include "GL/glew.h"
+#include "../platform/rendering/renderer.h"
 typedef struct dmagh_layer_data{
+    void* Renderer;
     void* Window;
     application* App;
 } dmagh_layer_data;
 void dmagh_on_attach(layer* self){
+    int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    Data->Window=create_window();
+    Data->Window=create_window(width,height);
+    Data->Renderer=create_renderer(width,height);
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     destroy_window(Data->Window);
+    destroy_renderer(Data->Renderer);
 }
 void polling_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -23,7 +27,7 @@ void update_callback(layer* self, void* ctx){
 }
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    glClear(GL_COLOR_BUFFER_BIT);
+    begin_frame(Data->Renderer);
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
