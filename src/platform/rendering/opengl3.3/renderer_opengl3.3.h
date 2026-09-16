@@ -2,6 +2,7 @@
 #ifndef renderer_opengl3_3_h
 #define renderer_opengl3_3_h
 #include "GL/glew.h"
+#include "cglm/cglm.h"
 typedef struct vertex_data{
     float x,y,z;
     float r,g,b,a;
@@ -15,13 +16,16 @@ typedef struct renderer_api{
     GLuint EBO;
     GLuint ShaderProgram;
 
-    int* Indicies;
-    int Indicies_Count;
-    int Indicies_Cap;
+    GLuint Camera_Transform_Location;
+    mat4 Camera_Transform;
 
-    vertex_data* Vertecies_Data;
-    int Vertecies_Count;
-    int Vertecies_Cap;
+    int* Indices;
+    int Indices_Count;
+    int Indices_Cap;
+
+    vertex_data* Vertices_Data;
+    int Vertices_Count;
+    int Vertices_Cap;
 
 } renderer_api;
 #endif

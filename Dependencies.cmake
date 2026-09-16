@@ -32,3 +32,14 @@ endif()
 find_package(GLEW REQUIRED)
 target_link_libraries(dmagh PRIVATE GLEW::GLEW
                                     opengl32)
+
+
+
+FetchContent_Declare(
+    cglm
+    GIT_REPOSITORY https://github.com/recp/cglm
+    GIT_TAG v0.9.6
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(cglm)    
+target_link_libraries(dmagh PRIVATE cglm)
