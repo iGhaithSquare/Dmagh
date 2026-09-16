@@ -8,7 +8,7 @@ void *create_window(int width,int height){
     GLFWwindow* Win;
     GAVEN_ASSERT(glfwInit(),"Initializing glfw failed");
     glfwSetErrorCallback(error_callback);
-
+    
 
     #ifdef DMAGH_RENDERER_OPENGL3_3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
@@ -19,6 +19,7 @@ void *create_window(int width,int height){
     Win=glfwCreateWindow(width,height,"DMAGH",NULL,NULL);
     GAVEN_ASSERT(Win,"Window creation failed");
     glfwMakeContextCurrent(Win);
+    glfwSwapInterval(1);
     return Win;
 }
 void destroy_window(void *window){
@@ -31,5 +32,8 @@ void poll_window(application* app,void *window){
 }
 void render_window(void *window){
     glfwSwapBuffers((GLFWwindow*)window);
+}
+void change_vsync_state(void* window,int enabled){
+    glfwSwapInterval(enabled);
 }
 #endif
