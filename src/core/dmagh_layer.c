@@ -11,7 +11,7 @@ void dmagh_on_attach(layer* self){
     int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     Data->Window=create_window(width,height);
-    Data->Renderer=create_renderer(width,height);
+    Data->Renderer=create_renderer(width,height,128);
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -28,9 +28,12 @@ void update_callback(layer* self, void* ctx){
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     begin_frame(Data->Renderer);
+    draw_quad(Data->Renderer,0,0,128,128,1.0f,0.0f,0.0f,1.0f);
+    draw_quad(Data->Renderer,100,-200,128,128,0.0f,1.0f,1.0f,1.0f);
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    end_frame(Data->Renderer);
     render_window(Data->Window);
 }
 
