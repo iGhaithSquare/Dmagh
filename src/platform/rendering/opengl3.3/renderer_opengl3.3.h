@@ -16,8 +16,11 @@ typedef struct renderer_api{
     GLuint EBO;
     GLuint ShaderProgram;
 
-    GLuint Camera_Transform_Location;
-    mat4 Camera_Transform;
+    GLuint Uniform_Projection_Location;
+    mat4 Uniform_Projection;
+
+    GLuint Uniform_View_Location;
+    mat4 Uniform_View;
 
     int* Indices;
     int Indices_Count;

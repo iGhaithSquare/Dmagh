@@ -28,8 +28,8 @@ void update_callback(layer* self, void* ctx){
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     begin_frame(Data->Renderer);
-    draw_quad(Data->Renderer,0,0,128,128,1.0f,0.0f,0.0f,1.0f);
-    draw_quad(Data->Renderer,100,-200,128,128,0.0f,1.0f,1.0f,1.0f);
+    draw_quad(Data->Renderer,0,238,128,256,1.0f,0.0f,0.0f,1.0f);
+    draw_quad(Data->Renderer,202,402,256,128,0.0f,1.0f,1.0f,1.0f);
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
