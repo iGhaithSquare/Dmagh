@@ -2,11 +2,11 @@
 #ifndef QUAD_RENDERER_OPENGL3_3_H
 #define QUAD_RENDERER_OPENGL3_3_H
 #include "renderer_opengl3.3.h"
-typedef struct vertex_data{
+typedef struct quad_vertex_data{
     float x,y,z;
     float r,g,b,a;
     float u,v;
-} vertex_data;
+} quad_vertex_data;
 struct quad_renderer{
     
     renderer_api* Renderer_api;
@@ -15,15 +15,15 @@ struct quad_renderer{
     GLuint EBO;
     shader* Shader;
 
-    GLuint Uniform_Projection_Location;
+    GLint Uniform_Projection_Location;
 
-    GLuint Uniform_View_Location;
+    GLint Uniform_View_Location;
 
     int* Indices;
     int Indices_Count;
     int Indices_Cap;
 
-    vertex_data* Vertices_Data;
+    quad_vertex_data* Vertices_Data;
     int Vertices_Count;
     int Vertices_Cap;
 };

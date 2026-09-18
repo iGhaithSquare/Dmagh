@@ -1,5 +1,6 @@
 #ifdef DMAGH_RENDERER_OPENGL3_3
 #include "quad_renderer_opengl3.3.h"
+#include "curve_renderer_opengl3.3.h"
 #include <stdlib.h>
 #include <gaven.h>
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char){
@@ -59,17 +60,22 @@ void destroy_shader(shader* Shader){
 void use_shader(shader* Shader){
     glUseProgram(Shader->Program);
 }
-void* create_renderer(int width, int height,int Quad_Cap){
+void* create_renderer(int width, int height,int Quad_Cap,curve_array* Curve_Array){
     renderer_api* R=(renderer_api*)malloc(sizeof(renderer_api));
     R->Width=width;
     R->Height=height;
+    GLenum Result =glewInit();
+    GAVEN_ASSERT(!Result,"GLEW initialization failed: %s",(const char*)glewGetErrorString(Result));
+    R->Curve_Renderer = create_curve_renderer(R,Curve_Array);
     R->Quad_Renderer = create_quad_renderer(R,Quad_Cap);
     glm_ortho(0.0f,R->Width,0.0f,R->Height,-0.1f,100.0f,R->Uniform_Projection);
     glm_mat4_identity(R->Uniform_View);
+    glEnable(GL_DEPTH_TEST);
     return R;
 }
 void destroy_renderer(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
+    destroy_curve_renderer(R->Curve_Renderer);
     destroy_quad_renderer(R->Quad_Renderer);
     free(R);
 }
@@ -80,10 +86,15 @@ void begin_frame(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
     glClearColor(0.1f,0.1f,0.15f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+
+    begin_frame_curve_renderer(R->Curve_Renderer);
+
     begin_frame_quad_renderer(R->Quad_Renderer);
 }
 void end_frame(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
+    end_frame_curve_renderer(R->Curve_Renderer);
     end_frame_quad_renderer(R->Quad_Renderer);
 }
 void* get_framebuffer_texture(void){

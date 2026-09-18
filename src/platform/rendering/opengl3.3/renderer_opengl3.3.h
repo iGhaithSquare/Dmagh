@@ -4,6 +4,7 @@
 #include "GL/glew.h"
 #include "cglm/cglm.h"
 typedef struct quad_renderer quad_renderer;
+typedef struct curve_renderer curve_renderer;
 typedef struct{
     GLuint Program;
 } shader;
@@ -11,6 +12,7 @@ typedef struct renderer_api{
     int Width;
     int Height;
     quad_renderer* Quad_Renderer;
+    curve_renderer* Curve_Renderer;
     mat4 Uniform_View;
     mat4 Uniform_Projection;
 } renderer_api;

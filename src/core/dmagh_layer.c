@@ -6,12 +6,21 @@ typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
     application* App;
+    curve Sample_Curve;
+    curve_array* Curve_Array;
 } dmagh_layer_data;
 void dmagh_on_attach(layer* self){
     int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    Data->Curve_Array=create_curve_array();
     Data->Window=create_window(width,height);
-    Data->Renderer=create_renderer(width,height,128);
+    Data->Renderer=create_renderer(width,height,128,Data->Curve_Array);
+
+    
+    
+    Data->Sample_Curve=begin_curve(Data->Curve_Array,(curve_point){{100.0f,100.0f},{100.0f,100.0f},{100.0f,100.0f}});
+    add_point(Data->Curve_Array,(curve_point){{250.0f,150.0f},{250.0f,150.0f},{250.0f,150.0f,}});
+    end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{300.0f,300.0f},{300.0f,300.0f},{300.0f,300.0f}});
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -30,6 +39,7 @@ void render_callback(layer* self, void* ctx){
     begin_frame(Data->Renderer);
     draw_quad(Data->Renderer,0,238,128,256,1.0f,0.0f,0.0f,1.0f);
     draw_quad(Data->Renderer,202,402,256,128,0.0f,1.0f,1.0f,1.0f);
+    draw_curve(Data->Renderer,Data->Sample_Curve);
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
