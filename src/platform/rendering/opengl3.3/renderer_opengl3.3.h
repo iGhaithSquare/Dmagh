@@ -1,36 +1,21 @@
 #ifdef DMAGH_RENDERER_OPENGL3_3
-#ifndef renderer_opengl3_3_h
-#define renderer_opengl3_3_h
+#ifndef RENDERER_OPENGL3_3_H
+#define RENDERER_OPENGL3_3_H
 #include "GL/glew.h"
 #include "cglm/cglm.h"
-typedef struct vertex_data{
-    float x,y,z;
-    float r,g,b,a;
-    float u,v;
-} vertex_data;
+typedef struct quad_renderer quad_renderer;
+typedef struct{
+    GLuint Program;
+} shader;
 typedef struct renderer_api{
     int Width;
     int Height;
-
-    GLuint VAO;
-    GLuint VBO;
-    GLuint EBO;
-    GLuint ShaderProgram;
-
-    GLuint Uniform_Projection_Location;
-    mat4 Uniform_Projection;
-
-    GLuint Uniform_View_Location;
+    quad_renderer* Quad_Renderer;
     mat4 Uniform_View;
-
-    int* Indices;
-    int Indices_Count;
-    int Indices_Cap;
-
-    vertex_data* Vertices_Data;
-    int Vertices_Count;
-    int Vertices_Cap;
-
+    mat4 Uniform_Projection;
 } renderer_api;
+shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char);
+void destroy_shader(shader* Shader);
+void use_shader(shader* Shader);
 #endif
 #endif
