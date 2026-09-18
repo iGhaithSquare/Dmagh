@@ -6,6 +6,7 @@
 typedef struct vertex_data{
     float x,y,z;
     float r,g,b,a;
+    float u,v;
 } vertex_data;
 typedef struct renderer_api{
     int Width;
