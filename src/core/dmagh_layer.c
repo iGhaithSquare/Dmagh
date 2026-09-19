@@ -18,13 +18,8 @@ void dmagh_on_attach(layer* self){
 
     
     
-    begin_curve(Data->Curve_Array,(curve_point){{100.0f,100.0f},{100.0f,100.0f},{100.0f,100.0f}});
-    add_point(Data->Curve_Array,(curve_point){{250.0f,150.0f},{250.0f,150.0f},{250.0f,150.0f,}});
-    end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{200.0f,200.0f},{200.0f,200.0f},{0.0f,0.0f}});
-
-    begin_curve(Data->Curve_Array,(curve_point){{400.0f,400.0f},{400.0f,400.0f},{400.0f,400.0f}});
-    add_point(Data->Curve_Array,(curve_point){{350.0f,550.0f},{350.0f,450.0f},{350.0f,450.0f,}});
-    end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{600.0f,600.0f},{600.0f,600.0f},{0.0f,0.0f}});
+    begin_curve(Data->Curve_Array,(curve_point){{40.0f,340.0f},{40.0f,340.0f},{160.0f,400.0f}});
+    end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{200.0f,400.0f},{320.0f,340.0f},{0.0f,0.0f}});
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
