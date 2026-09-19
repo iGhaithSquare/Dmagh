@@ -60,13 +60,13 @@ void destroy_shader(shader* Shader){
 void use_shader(shader* Shader){
     glUseProgram(Shader->Program);
 }
-void* create_renderer(int width, int height,int Quad_Cap,curve_array* Curve_Array){
+void* create_renderer(int width, int height,int Quad_Cap){
     renderer_api* R=(renderer_api*)malloc(sizeof(renderer_api));
     R->Width=width;
     R->Height=height;
     GLenum Result =glewInit();
     GAVEN_ASSERT(!Result,"GLEW initialization failed: %s",(const char*)glewGetErrorString(Result));
-    R->Curve_Renderer = create_curve_renderer(R,Curve_Array);
+    R->Curve_Renderer = create_curve_renderer(R);
     R->Quad_Renderer = create_quad_renderer(R,Quad_Cap);
     glm_ortho(0.0f,R->Width,0.0f,R->Height,-0.1f,100.0f,R->Uniform_Projection);
     glm_mat4_identity(R->Uniform_View);

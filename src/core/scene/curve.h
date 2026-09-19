@@ -2,8 +2,8 @@
 #define CURVE_H
 #include "cglm/cglm.h"
 typedef struct {
-    vec2 Position;
     vec2 HandleIn;
+    vec2 Position;
     vec2 HandleOut;
 } curve_point;
 typedef struct {
