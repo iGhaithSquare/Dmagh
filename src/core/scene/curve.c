@@ -10,7 +10,6 @@ curve_array* create_curve_array(){
     Array->Point_Count=0;
     Array->Curve_Count=0;
     Array->Creating_Curve_Flag=0;
-    Array->Version=0;
     return Array;
 }
 curve begin_curve(curve_array* Array,curve_point Start){
@@ -26,24 +25,27 @@ curve begin_curve(curve_array* Array,curve_point Start){
         Array->Current_Curve=Curve;
         Array->Creating_Curve_Flag=1;
     }
-    add_point(Array,Start);
+    curve_point P=Start;
+    glm_vec2_copy((vec2){0.0f,0.0f},P.HandleIn);
+    add_point(Array,P);
     return Curve;
 }
 void add_point(curve_array* Array,curve_point Point){
     if(Array->Point_Count==Array->Point_Cap){
-        Array->Point_Count*=2;
+        Array->Point_Cap*=2;
         Array->Points=realloc(Array->Points,sizeof(curve_point)*Array->Point_Cap);
         GAVEN_ASSERT(Array->Points,"Couldnt allocate memory for curve array");
     }
     Array->Points[Array->Point_Count++]=Point;
-    Array->Version++;
 }
 void end_curve(curve_array* Array,curve* Curve,curve_point End){
     if(!Array->Creating_Curve_Flag){
         GAVEN_WARN("No Curve is being created");
         return;
     }
-    add_point(Array,End);
+    curve_point P=End;
+    glm_vec2_copy((vec2){0.0f,0.0f},P.HandleOut);
+    add_point(Array,P);
 
     Curve->point_count=Array->Point_Count-Curve->point_offset;
     Array->Current_Curve=*Curve;
@@ -58,5 +60,4 @@ void remove_curve_from_curve_array(curve_array* Array, curve Curve){
     memmove(Array->Points+Curve.point_offset,Array->Points+Curve.point_offset+Curve.point_count,(Array->Point_Count-Curve.point_count-Curve.point_offset)*sizeof(curve_point));
     Array->Point_Count-=Curve.point_count;
     Array->Curve_Count--;
-    Array->Version++;
 }

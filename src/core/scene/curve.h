@@ -4,6 +4,8 @@
 typedef struct {
     vec2 HandleIn;
     vec2 Position;
+    int Size;
+    vec4 Color;
     vec2 HandleOut;
 } curve_point;
 typedef struct {
@@ -17,7 +19,6 @@ typedef struct{
     uint32_t Curve_Count;
     uint8_t Creating_Curve_Flag;
     curve Current_Curve;
-    uint32_t Version;
 } curve_array;
 curve_array* create_curve_array();
 curve begin_curve(curve_array* Array,curve_point Start);

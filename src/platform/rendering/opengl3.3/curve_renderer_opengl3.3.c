@@ -19,12 +19,20 @@ curve_renderer* create_curve_renderer(renderer_api* renderer){
 
     glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)offsetof(curve_point,Position));
     glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)offsetof(curve_point,HandleOut));
-    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,HandleIn)));
-    glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,Position)));
+    glVertexAttribIPointer(2,1,GL_INT,sizeof(curve_point),(void*)offsetof(curve_point,Size));
+    glVertexAttribPointer(3,4,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(offsetof(curve_point,Color)));
+    glVertexAttribPointer(4,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,HandleIn)));
+    glVertexAttribPointer(5,2,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,Position)));
+    glVertexAttribIPointer(6,1,GL_INT,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,Size)));
+    glVertexAttribPointer(7,4,GL_FLOAT,GL_FALSE,sizeof(curve_point),(void*)(sizeof(curve_point)+offsetof(curve_point,Color)));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
+    glEnableVertexAttribArray(6);
+    glEnableVertexAttribArray(7);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindVertexArray(0);
@@ -32,43 +40,74 @@ curve_renderer* create_curve_renderer(renderer_api* renderer){
     const char *vs_src=  "#version 330 core\n"
                                     "layout(location = 0) in vec2 aPos1;\n"
                                     "layout(location = 1) in vec2 aHandOut;\n"
-                                    "layout(location = 2) in vec2 aHandIn;\n"
-                                    "layout(location = 3) in vec2 aPos2;\n"
+                                    "layout(location = 2) in int aSize1;\n"
+                                    "layout(location = 3) in vec4 aColor1;\n"
+                                    "layout(location = 4) in vec2 aHandIn;\n"
+                                    "layout(location = 5) in vec2 aPos2;\n"
+                                    "layout(location = 6) in int aSize2;\n"
+                                    "layout(location = 7) in vec4 aColor2;\n"
                                     "flat out vec2 vPos1;\n"
                                     "flat out vec2 vHandOut;\n"
+                                    "flat out int vSize1;\n"
+                                    "flat out vec4 vColor1;\n"
                                     "flat out vec2 vHandIn;\n"
                                     "flat out vec2 vPos2;\n"
+                                    "flat out int vSize2;\n"
+                                    "flat out vec4 vColor2;\n"
                                     "void main(){\n"
                                         "vPos1=aPos1;\n"
                                         "vHandOut=aHandOut;\n"
                                         "vHandIn=aHandIn;\n"
                                         "vPos2=aPos2;\n"
+                                        "vSize1=aSize1;\n"
+                                        "vSize2=aSize2;\n"
+                                        "vColor1=aColor1;\n"
+                                        "vColor2=aColor2;\n"
                                         "gl_Position=vec4(0.0);\n"
                                     "}";
     const char *fs_src= "#version 330 core\n"
                                     "out vec4 color;\n"
+                                    "in vec4 gColor;\n"
                                     "void main(){\n"
-                                        "color=vec4(1.0,0.0,0.0,1.0);\n"
+                                        "color=gColor;\n"
                                     "}";
     const char *gs_src=  "#version 330 core\n"
                                     "layout(points) in;\n"
-                                    "layout(line_strip, max_vertices = 65) out;\n"
+                                    "layout(triangle_strip, max_vertices = 130) out;\n"
                                     "flat in vec2 vPos1[];\n"
+                                    "flat in int vSize1[];\n"
+                                    "flat in vec4 vColor1[];\n"
                                     "flat in vec2 vHandOut[];\n"
                                     "flat in vec2 vHandIn[];\n"
                                     "flat in vec2 vPos2[];\n"
+                                    "flat in int vSize2[];\n"
+                                    "flat in vec4 vColor2[];\n"
+                                    "out vec4 gColor;\n"
                                     "uniform mat4 projection;\n"
                                     "uniform mat4 view;\n"
                                     "void main(){\n"
-                                        "int i=0;"
-                                        "vec2 Pos;"
-                                        "float t=0.0f;"
+                                        "int i=0;\n"
+                                        "vec2 Pos=vPos1[0];\n"
+                                        "float t=0.0f,mt;\n"
                                         "if (vHandOut[0]==vec2(0,0))\n"
                                             "return;\n"
                                         "while(i<=64){\n"
                                             "t=float(i)/64;\n"
-                                            "Pos=(1-t)*(1-t)*(1-t)*vPos1[0]+3*(1-t)*(1-t)*t*(vPos1[0]+vHandOut[0])+3*(1-t)*t*t*(vPos2[0]+vHandIn[0])+t*t*t*vPos2[0];"
-                                            "gl_Position=projection*view*vec4(Pos,0.0,1.0);\n"
+                                            "mt=1-t;\n"
+                                            "vec2 NewPos=mt*mt*mt*vPos1[0]+3*mt*mt*t*vHandOut[0]+3*mt*t*t*vHandIn[0]+t*t*t*vPos2[0];\n"
+                                            "vec2 Tangent=NewPos-Pos;"
+                                            "Pos=NewPos\n;"
+                                            "Tangent =normalize(Tangent);\n"
+                                            "vec2 Normal=vec2(Tangent.y,-Tangent.x);\n"
+                                            "float Size=mix(float(vSize1[0]),float(vSize2[0]),t);\n"
+                                            "vec4 Color=mix(vColor1[0],vColor2[0],t);\n"
+                                            "vec2 Left= Pos+Normal*Size;\n"
+                                            "vec2 Right= Pos-Normal*Size;\n"
+                                            "gColor=Color;\n"
+                                            "gl_Position=projection*view*vec4(Left,0.0,1.0);\n"
+                                            "EmitVertex();\n"
+                                            "gColor=Color;\n"
+                                            "gl_Position=projection*view*vec4(Right,0.0,1.0);\n"
                                             "EmitVertex();\n"
                                             "i++;\n"
                                         "}\n"
