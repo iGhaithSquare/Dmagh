@@ -15,6 +15,11 @@ typedef struct renderer_api{
     curve_renderer* Curve_Renderer;
     mat4 Uniform_View;
     mat4 Uniform_Projection;
+    
+    float cx,cy,cz;
+    float crx,cry,crz;
+    float czoom;
+    uint8_t c_ortho;
 } renderer_api;
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char);
 void destroy_shader(shader* Shader);

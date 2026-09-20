@@ -93,10 +93,10 @@ void draw_quad(void* renderer, int x,int y, int width, int height,float red,floa
     R->Indices[R->Indices_Count++] = R->Vertices_Count+2;
     R->Indices[R->Indices_Count++] = R->Vertices_Count+3;
     
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,0.0f,red,green,blue,alpha,1.0f,1.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,0.0f,red,green,blue,alpha,1.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,0.0f,red,green,blue,alpha,0.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,0.0f,red,green,blue,alpha,0.0f,1.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,-1.0f,red,green,blue,alpha,1.0f,1.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,-1.0f,red,green,blue,alpha,1.0f,0.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,-1.0f,red,green,blue,alpha,0.0f,0.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,-1.0f,red,green,blue,alpha,0.0f,1.0f};
 }
 void begin_frame_quad_renderer(quad_renderer* R){
     R->Vertices_Count=0;

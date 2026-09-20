@@ -8,6 +8,7 @@ typedef struct dmagh_layer_data{
     application* App;
     curve Sample_Curve;
     curve_array* Curve_Array;
+    int i;
 } dmagh_layer_data;
 void dmagh_on_attach(layer* self){
     int width=1280,height=720;
@@ -15,6 +16,7 @@ void dmagh_on_attach(layer* self){
     Data->Curve_Array=create_curve_array();
     Data->Window=create_window(width,height);
     Data->Renderer=create_renderer(width,height,128);
+    Data->i=0;
     begin_curve(Data->Curve_Array,(curve_point){{0.0f,0.0f},{100.0f,850.0f},50,{1.0f,0.0f,0.5f,1.0f},{300.0f,100.0f}});
     end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{700.0f,100.0f},{800.0f,850.0f},1,{0.0f,0.5f,1.0f,1.0f},{0.0f,0.0f}});
 }
@@ -29,6 +31,8 @@ void polling_callback(layer* self, void* ctx){
 }
 void update_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    rotate_camera(Data->Renderer,0.0f,0.0f,(float)(Data->i)*0.01f);
+    Data->i++;
 }
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;

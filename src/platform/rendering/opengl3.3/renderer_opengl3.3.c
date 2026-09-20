@@ -68,7 +68,15 @@ void* create_renderer(int width, int height,int Quad_Cap){
     GAVEN_ASSERT(!Result,"GLEW initialization failed: %s",(const char*)glewGetErrorString(Result));
     R->Curve_Renderer = create_curve_renderer(R);
     R->Quad_Renderer = create_quad_renderer(R,Quad_Cap);
-    glm_ortho(0.0f,R->Width,0.0f,R->Height,-0.1f,100.0f,R->Uniform_Projection);
+    R->cx=0.0f;
+    R->cy=0.0f;
+    R->cz=0.0f;
+    R->czoom=1.0f;
+    R->crx=0.0f;
+    R->cry=0.0f;
+    R->crz=0.0f;
+    R->c_ortho=1;
+    glm_ortho(0.0f,R->Width,0.0f,R->Height,0.1f,100.0f,R->Uniform_Projection);
     glm_mat4_identity(R->Uniform_View);
     glEnable(GL_DEPTH_TEST);
     return R;
@@ -79,8 +87,44 @@ void destroy_renderer(void* renderer){
     destroy_quad_renderer(R->Quad_Renderer);
     free(R);
 }
-void change_camera_attribs(void* renderer,int x,int y, double scale){
-    return;
+
+void update_view_matrix(renderer_api* R){
+    float zoom=1.0f/R->czoom;
+    glm_mat4_identity(R->Uniform_View);
+    glm_scale(R->Uniform_View,(vec3){zoom,zoom,zoom});    
+    glm_rotate_z(R->Uniform_View,-R->crz,R->Uniform_View);
+    glm_rotate_y(R->Uniform_View,-R->cry,R->Uniform_View);
+    glm_rotate_x(R->Uniform_View,-R->crx,R->Uniform_View);
+    glm_translate(R->Uniform_View,(vec3){-R->cx,-R->cy,-R->cz});
+}
+void move_camera(void* renderer,float x,float y,float z){
+    renderer_api* R=(renderer_api*)renderer;
+    R->cx=x;
+    R->cy=y;
+    R->cz=z;
+    update_view_matrix(R);
+}
+void zoom_camera(void* renderer,float zoom){
+    renderer_api* R=(renderer_api*)renderer;
+    R->czoom=zoom;
+    update_view_matrix(R);
+}
+void rotate_camera(void* renderer,float rx,float ry, float rz){
+    renderer_api* R=(renderer_api*)renderer;
+    R->crx=rx;
+    R->cry=ry;
+    R->crz=rz;
+    update_view_matrix(R);
+}
+void toggle_ortho_camera(void* renderer,uint8_t is_ortho){
+    renderer_api* R=(renderer_api*)renderer;
+    if(R->c_ortho==is_ortho) return;
+    R->c_ortho=is_ortho;
+    if(is_ortho)
+        glm_ortho(0.0f,R->Width,0.0f,R->Height,0.1f,100.0f,R->Uniform_Projection);
+    else{
+        glm_perspective(glm_rad(60.0f),(float)R->Width/(float)R->Height,0.1f,100.0f,R->Uniform_Projection);
+    }
 }
 void begin_frame(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
