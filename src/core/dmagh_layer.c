@@ -14,7 +14,7 @@ void dmagh_on_attach(layer* self){
     int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     Data->Curve_Array=create_curve_array();
-    Data->Window=create_window(width,height);
+    Data->Window=create_window(&width,&height);
     Data->Renderer=create_renderer(width,height,128);
     Data->i=0;
     begin_curve(Data->Curve_Array,(curve_point){{0.0f,0.0f},{100.0f,850.0f},50,{1.0f,0.0f,0.5f,1.0f},{300.0f,100.0f}});

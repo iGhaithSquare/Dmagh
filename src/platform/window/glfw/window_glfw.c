@@ -4,7 +4,7 @@
 void error_callback(int error, const char* description){
     GAVEN_WARN("Error: %s\n", description);
 }
-void *create_window(int width,int height){
+void *create_window(int *width, int *height){
     GLFWwindow* Win;
     GAVEN_ASSERT(glfwInit(),"Initializing glfw failed");
     glfwSetErrorCallback(error_callback);
@@ -16,7 +16,7 @@ void *create_window(int width,int height){
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     #endif
 
-    Win=glfwCreateWindow(width,height,"DMAGH",NULL,NULL);
+    Win=glfwCreateWindow(*width,*height,"DMAGH",NULL,NULL);
     GAVEN_ASSERT(Win,"Window creation failed");
     glfwMakeContextCurrent(Win);
     glfwSwapInterval(1);
