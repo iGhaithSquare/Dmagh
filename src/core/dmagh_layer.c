@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "../platform/window/window.h"
 #include "../platform/rendering/renderer.h"
+#include "events/window_events.h"
 typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
@@ -10,6 +11,15 @@ typedef struct dmagh_layer_data{
     curve_array* Curve_Array;
     int i;
 } dmagh_layer_data;
+
+int dmagh_on_window_destroyed(window_destroyed* E,application* app){
+    app->Running=0;
+    return 1;
+}
+void dmagh_on_event(layer* self, event* Event){
+    dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
+} 
 void dmagh_on_attach(layer* self){
     int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -27,7 +37,7 @@ void dmagh_on_dettach(layer* self){
 }
 void polling_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    poll_window(Data->App,Data->Window);
+    poll_window(Data->Window);
 }
 void update_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -58,6 +68,7 @@ layer* create_dmagh_layer(application* app){
     L->LayerData=data;
     L->OnAttach=dmagh_on_attach;
     L->OnDettach=dmagh_on_dettach;
+    L->OnEvent=dmagh_on_event;
     L->Name="Dmagh";
     return L;
 }

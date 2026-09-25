@@ -1,6 +1,11 @@
 #ifdef DMAGH_WINDOW_GLFW 
 #include "GLFW/glfw3.h"
-#include <gaven.h>
+#include "../../../core/events/window_events.h"
+void window_destroy_callback(void){
+    window_destroyed E;
+    window_destroyed_init(&E);
+    application_event_callback(&E.base);
+}
 void error_callback(int error, const char* description){
     GAVEN_WARN("Error: %s\n", description);
 }
@@ -26,8 +31,9 @@ void destroy_window(void *window){
     glfwDestroyWindow((GLFWwindow*)window);
     glfwTerminate();
 }
-void poll_window(application* app,void *window){
-    app->Running=!glfwWindowShouldClose((GLFWwindow*)window);
+void poll_window(void *window){
+    if(glfwWindowShouldClose((GLFWwindow*)window))
+        window_destroy_callback();
     glfwPollEvents();
 }
 void render_window(void *window){

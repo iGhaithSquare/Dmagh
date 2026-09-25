@@ -2,7 +2,7 @@
 #include <android/native_window.h>
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
-#include <gaven.h>
+#include "../../../core/events/window_events.h"
 #include <stdlib.h>
 #include "../../../core/dmagh_layer.h"
 #ifdef DMAGH_RENDERER_OPENGLES3_2
@@ -16,13 +16,29 @@ typedef struct awindow{
 #else
 #endif
 static ANativeWindow* Native_Window=NULL;
-static void android_cmd_callback(struct android_app* app,int32_t cmd){
+struct android_app* APP=NULL;
+static void temp_android_cmd_callback(struct android_app* app,int32_t cmd){
     if(cmd==APP_CMD_INIT_WINDOW){
         Native_Window=app->window;
     }
 }
+static void android_cmd_callback(struct android_app* app,int32_t cmd){
+    switch (cmd) {
+        case APP_CMD_INIT_WINDOW:
+            Native_Window=app->window;
+            break;
+        case APP_CMD_TERM_WINDOW:
+            window_destroyed E;
+            window_destroyed_init(&E);
+            application_event_callback(&E.base);
+            break;
+        default:
+            break;
+    }
+}
 void android_main(struct android_app* app){
-    app->onAppCmd=android_cmd_callback;
+    app->onAppCmd=temp_android_cmd_callback;
+    APP=app;
     while(!Native_Window){
         int events;
         struct android_poll_source* source;
@@ -32,6 +48,7 @@ void android_main(struct android_app* app){
     }
     application* mapp=create_gaven_application();
     mapp->Running=1;
+    app->onAppCmd=android_cmd_callback;
     add_layer(mapp->Layer_Registry,create_dmagh_layer(mapp));
     run_application();
     destroy_application();
@@ -88,8 +105,12 @@ void destroy_window(void *window){
     #endif
     free(W);
 }
-void poll_window(application* app,void *window){
-    return;
+void poll_window(void *window){
+    int events;
+    struct android_poll_source* source;
+    ALooper_pollOnce(0,NULL,&events,(void**)&source);
+    if(source)
+        source->process(APP,source);
 }
 void render_window(void *window){
     awindow* W=(awindow*)window;
