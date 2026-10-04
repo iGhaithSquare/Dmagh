@@ -1,6 +1,5 @@
 #ifdef DMAGH_WINDOW_ANDROID
 #include <android/native_window.h>
-#include <android/window.h>
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
 #include "../../../core/events/window_events.h"
@@ -82,11 +81,33 @@ static void android_cmd_callback(struct android_app* app,int32_t cmd){
             break;
     }
 }
+void hide_android_ui(ANativeActivity* activity){
+    JNIEnv* env=activity->env;
+    jclass activity_class=(*env)->GetObjectClass(env,activity->clazz);
+    jmethodID get_window=(*env)->GetMethodID(env,activity_class,"getWindow","()Landroid/view/Window;");
+    jobject window=(*env)->CallObjectMethod(env,activity->clazz,get_window);
+    jclass window_class=(*env)->GetObjectClass(env,window);
+    jmethodID get_decor_view=(*env)->GetMethodID(env,window_class,"getDecorView","()Landroid/view/View;");
+    jobject decor_view=(*env)->CallObjectMethod(env,window,get_decor_view);
+    jclass view_class=(*env)->GetObjectClass(env,decor_view);
+    jmethodID set_system_ui_visibility=(*env)->GetMethodID(env,view_class,"setSystemUiVisibility","(I)V");
+    jint flags=2|4|256|512|1024|4096;
+    (*env)->CallVoidMethod(env,decor_view,set_system_ui_visibility,flags);
+    (*env)->DeleteLocalRef(env,view_class);
+    (*env)->DeleteLocalRef(env,decor_view);
+    (*env)->DeleteLocalRef(env,window_class);
+    (*env)->DeleteLocalRef(env,window);
+    (*env)->DeleteLocalRef(env,activity_class);
+}
+static void android_window_focus_callback(ANativeActivity* activity,int has_focus){
+    if(has_focus)
+        hide_android_ui(activity);
+}
 void android_main(struct android_app* app){
     app->onAppCmd=temp_android_cmd_callback;
     app->userData=NULL;
     APP=app;
-    ANativeActivity_setWindowFlags(app->activity,AWINDOW_FLAG_FULLSCREEN,0);
+    app->activity->callbacks->onWindowFocusChanged=android_window_focus_callback;
     while(!Native_Window){
         int events;
         struct android_poll_source* source;
