@@ -10,15 +10,23 @@ typedef struct dmagh_layer_data{
     curve Sample_Curve;
     curve_array* Curve_Array;
     int i;
+    uint8_t Paused;
 } dmagh_layer_data;
 
 int dmagh_on_window_destroyed(window_destroyed* E,application* app){
     app->Running=0;
     return 1;
 }
+int dmagh_on_window_pause(window_pause* E,dmagh_layer_data* Data){
+    Data->Paused=E->state;
+    return 1;
+}
 void dmagh_on_event(layer* self, event* Event){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
+    EVENT_DISPATCH_V(Event,window_pause,dmagh_on_window_pause,Data);
+
+    renderer_onEvent(Data->Renderer,Event);
 } 
 void dmagh_on_attach(layer* self){
     int width=1280,height=720;
@@ -37,12 +45,17 @@ void dmagh_on_dettach(layer* self){
 }
 void polling_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    poll_window(Data->Window);
+    do {
+        poll_window(&Data->Window);
+    }while(Data->Paused);
 }
 void update_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     rotate_camera(Data->Renderer,0.0f,0.0f,(float)(Data->i)*0.01f);
-    Data->i++;
+    if(Data->i<100)
+        Data->i++;
+    else 
+        Data->i=0;
 }
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -65,6 +78,7 @@ layer* create_dmagh_layer(application* app){
     bind_layer_phase(L,layer_phase_render_callback,render_callback);
     bind_layer_phase(L,layer_phase_gui_render_callback,gui_render_callback);
     data->App=app;
+    data->Paused=0;
     L->LayerData=data;
     L->OnAttach=dmagh_on_attach;
     L->OnDettach=dmagh_on_dettach;

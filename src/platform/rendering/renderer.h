@@ -13,5 +13,6 @@ void draw_quad(void* renderer, int x,int y, int width, int height,float red,floa
 void draw_curve_array(void* renderer,curve_array *Array);
 void begin_frame(void* renderer);
 void end_frame(void* renderer);
+void renderer_onEvent(void* renderer,event* Event);
 void* get_framebuffer_texture(void);
 #endif

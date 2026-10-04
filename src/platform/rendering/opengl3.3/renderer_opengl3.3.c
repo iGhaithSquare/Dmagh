@@ -3,6 +3,7 @@
 #include "curve_renderer_opengl3.3.h"
 #include <stdlib.h>
 #include <gaven.h>
+#include "../../../core/events/window_events.h"
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char){
     int success;
     char Log[512];    
@@ -138,10 +139,32 @@ void begin_frame(void* renderer){
 }
 void end_frame(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
+    if(R->is_minimized)
+        return;
     end_frame_curve_renderer(R->Curve_Renderer);
     end_frame_quad_renderer(R->Quad_Renderer);
 }
 void* get_framebuffer_texture(void){
     return NULL;
+}
+int opengl3_3_window_resize(window_resize* E,renderer_api* R){
+    if(E->height&&E->width){
+        R->is_minimized=0;
+        R->Width=E->width;
+        R->Height=E->height;
+        if(R->c_ortho)
+            glm_ortho(0.0f,R->Width,0.0f,R->Height,0.1f,100.0f,R->Uniform_Projection);
+        else{
+            glm_perspective(glm_rad(60.0f),(float)R->Width/(float)R->Height,0.1f,100.0f,R->Uniform_Projection);
+        }
+        glViewport(0,0,R->Width,R->Height);
+    }
+    else
+        R->is_minimized=1;
+    return 0;
+}
+void renderer_onEvent(void* renderer,event* Event){
+    renderer_api* R=(renderer_api*)renderer;
+    EVENT_DISPATCH_V(Event,window_resize,opengl3_3_window_resize,R);
 }
 #endif

@@ -1,5 +1,6 @@
 #ifdef DMAGH_WINDOW_ANDROID
 #include <android/native_window.h>
+#include <android/window.h>
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
 #include "../../../core/events/window_events.h"
@@ -8,10 +9,12 @@
 #ifdef DMAGH_RENDERER_OPENGLES3_2
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include "../window.h"
 typedef struct awindow{
     EGLDisplay Display;
     EGLSurface Surface;
     EGLContext Context;
+    EGLConfig Config;
 } awindow;
 #else
 #endif
@@ -22,15 +25,58 @@ static void temp_android_cmd_callback(struct android_app* app,int32_t cmd){
         Native_Window=app->window;
     }
 }
+
+void destroy_window_surface(void *window){
+    awindow* W=(awindow*)window;
+    #ifdef DMAGH_RENDERER_OPENGLES3_2
+    eglMakeCurrent(W->Display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);
+    eglDestroySurface(W->Display,W->Surface);
+    W->Surface=EGL_NO_SURFACE;
+    #else
+    #endif
+}
+void create_window_surface(void* window){
+    awindow* Win=(awindow*)window;
+    GAVEN_ASSERT(Native_Window,"Failed to find native window");
+    #ifdef DMAGH_RENDERER_OPENGLES3_2
+    Win->Surface=eglCreateWindowSurface(Win->Display,Win->Config,(EGLNativeWindowType)Native_Window,NULL);
+    GAVEN_ASSERT(Win->Surface!=EGL_NO_SURFACE,"Failed to create EGL surface");
+    GAVEN_ASSERT(eglMakeCurrent(Win->Display,Win->Surface,Win->Surface,Win->Context),"Failed to make EGL context current");
+    eglSwapInterval(Win->Display,1);
+    #else
+    #endif
+}
 static void android_cmd_callback(struct android_app* app,int32_t cmd){
+    void** win=(void**)app->userData;
     switch (cmd) {
-        case APP_CMD_INIT_WINDOW:
+        case APP_CMD_INIT_WINDOW:{
             Native_Window=app->window;
+            if(win){
+                create_window_surface(*win);
+                window_pause E;
+                window_pause_init(&E,0);
+                application_event_callback(&E.base);
+            }
             break;
-        case APP_CMD_TERM_WINDOW:
+        }
+        case APP_CMD_DESTROY:{
             window_destroyed E;
             window_destroyed_init(&E);
             application_event_callback(&E.base);
+            break;
+        }
+        case APP_CMD_TERM_WINDOW:
+            Native_Window=NULL;
+            destroy_window_surface(*win);
+        case APP_CMD_PAUSE:
+        case APP_CMD_STOP:{
+            window_pause E;
+            window_pause_init(&E,1);
+            application_event_callback(&E.base);
+            break;
+        }
+        case APP_CMD_START:
+        case APP_CMD_RESUME:
             break;
         default:
             break;
@@ -38,7 +84,9 @@ static void android_cmd_callback(struct android_app* app,int32_t cmd){
 }
 void android_main(struct android_app* app){
     app->onAppCmd=temp_android_cmd_callback;
+    app->userData=NULL;
     APP=app;
+    ANativeActivity_setWindowFlags(app->activity,AWINDOW_FLAG_FULLSCREEN,0);
     while(!Native_Window){
         int events;
         struct android_poll_source* source;
@@ -59,8 +107,10 @@ void error_callback(int error, const char* description){
 void *create_window(int *width, int *height){
     GAVEN_ASSERT(Native_Window,"Failed to find native window");
     awindow* Win=(awindow*)malloc(sizeof(awindow));
-    *width=ANativeWindow_getWidth(Native_Window);
-    *height=ANativeWindow_getHeight(Native_Window);
+    if(width)
+        *width=ANativeWindow_getWidth(Native_Window);
+    if(height)
+        *height=ANativeWindow_getHeight(Native_Window);
     
 
     #ifdef DMAGH_RENDERER_OPENGLES3_2
@@ -78,15 +128,14 @@ void *create_window(int *width, int *height){
         EGL_DEPTH_SIZE,24,
         EGL_NONE
     };
-    EGLConfig Config;
     EGLint Config_Count;
-    GAVEN_ASSERT(eglChooseConfig(Win->Display,ConfigAttribs,&Config,1,&Config_Count)&&Config_Count>0,"Failed to choose EGL config");
-    Win->Surface=eglCreateWindowSurface(Win->Display,Config,(EGLNativeWindowType)Native_Window,NULL);
+    GAVEN_ASSERT(eglChooseConfig(Win->Display,ConfigAttribs,&Win->Config,1,&Config_Count)&&Config_Count>0,"Failed to choose EGL config");
+    Win->Surface=eglCreateWindowSurface(Win->Display,Win->Config,(EGLNativeWindowType)Native_Window,NULL);
     GAVEN_ASSERT(Win->Surface!=EGL_NO_SURFACE,"Failed to create EGL surface");
     const EGLint Context_Attribs[]={
         EGL_CONTEXT_CLIENT_VERSION,3,EGL_NONE
     };
-    Win->Context=eglCreateContext(Win->Display,Config,EGL_NO_CONTEXT,Context_Attribs);
+    Win->Context=eglCreateContext(Win->Display,Win->Config,EGL_NO_CONTEXT,Context_Attribs);
     GAVEN_ASSERT(Win->Context!=EGL_NO_CONTEXT,"Failed to create EGL context");
     GAVEN_ASSERT(eglMakeCurrent(Win->Display,Win->Surface,Win->Surface,Win->Context),"Failed to make EGL context current");
     eglSwapInterval(Win->Display,1);
@@ -105,7 +154,8 @@ void destroy_window(void *window){
     #endif
     free(W);
 }
-void poll_window(void *window){
+void poll_window(void **window){
+    APP->userData=window;
     int events;
     struct android_poll_source* source;
     ALooper_pollOnce(0,NULL,&events,(void**)&source);

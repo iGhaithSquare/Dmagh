@@ -20,6 +20,7 @@ typedef struct renderer_api{
     float crx,cry,crz;
     float czoom;
     uint8_t c_ortho;
+    uint8_t is_minimized;
 } renderer_api;
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char);
 void destroy_shader(shader* Shader);

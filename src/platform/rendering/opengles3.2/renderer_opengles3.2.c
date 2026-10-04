@@ -142,4 +142,7 @@ void end_frame(void* renderer){
 void* get_framebuffer_texture(void){
     return NULL;
 }
+void renderer_onEvent(void* renderer,event* Event){
+    return;
+};
 #endif
