@@ -3,7 +3,7 @@
 #include "curve_renderer_opengl3.3.h"
 #include <stdlib.h>
 #include <gaven.h>
-#include "../../../core/events/window_events.h"
+#include "../../../core/events/dmagh_events.h"
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char){
     int success;
     char Log[512];    

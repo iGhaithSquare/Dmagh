@@ -1,4 +1,4 @@
-#include "window_events.h"
+#include "dmagh_events.h"
 #include <stdio.h>
 static inline void window_destroyed_to_string(event *Event, char* buffer, size_t buffer_size){
     if (!buffer) return;
@@ -24,7 +24,7 @@ void window_resize_init(window_resize *Event,float width, float height){
     Event->base.Handled = 0;
     Event->base.Name = "Window Resize";
     Event->base.To_String = window_resize_to_string;
-    Event->base.Type = event_type_window_pause;
+    Event->base.Type = event_type_window_resize;
     Event->width=width;
     Event->height=height;
 }

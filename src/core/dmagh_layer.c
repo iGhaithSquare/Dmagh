@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include "../platform/window/window.h"
 #include "../platform/rendering/renderer.h"
-#include "events/window_events.h"
+#include "events/dmagh_events.h"
+#include "input.h"
 typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
@@ -25,12 +26,13 @@ void dmagh_on_event(layer* self, event* Event){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
     EVENT_DISPATCH_V(Event,window_pause,dmagh_on_window_pause,Data);
-
+    input_on_event(Event);
     renderer_onEvent(Data->Renderer,Event);
 } 
 void dmagh_on_attach(layer* self){
     int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    init_input_system(width,height);
     Data->Curve_Array=create_curve_array();
     Data->Window=create_window(&width,&height);
     Data->Renderer=create_renderer(width,height,128);
@@ -42,25 +44,26 @@ void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     destroy_window(Data->Window);
     destroy_renderer(Data->Renderer);
+    destroy_input_system();
 }
 void polling_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     do {
         poll_window(&Data->Window);
     }while(Data->Paused);
+    input_polling();
 }
 void update_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     rotate_camera(Data->Renderer,0.0f,0.0f,(float)(Data->i)*0.01f);
-    if(Data->i<100)
-        Data->i++;
-    else 
-        Data->i=0;
+    
 }
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     begin_frame(Data->Renderer);
-    draw_quad(Data->Renderer,0,238,128,256,1.0f,0.0f,0.0f,1.0f);
+    int x=get_mouse_x();
+    int y=get_mouse_y();
+    draw_quad(Data->Renderer,x,y,128,256,1.0f,0.0f,0.0f,1.0f);
     draw_quad(Data->Renderer,202,402,256,128,0.0f,1.0f,1.0f,1.0f);
     draw_curve_array(Data->Renderer,Data->Curve_Array);
 }
