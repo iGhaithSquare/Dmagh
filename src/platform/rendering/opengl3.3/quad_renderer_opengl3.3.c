@@ -56,7 +56,7 @@ quad_renderer* create_quad_renderer(renderer_api* renderer,int Quad_Cap){
                                     "in vec4 v_Color;\n"
                                     "in vec2 v_UV;\n"
                                     "void main(){\n"
-                                    "   color=vec4(v_UV,0.0,1.0);\n"
+                                    "   color=v_Color;\n"
                                     "}";
     R->Shader = create_shader(vs_src,fs_src,NULL);
     R->Uniform_Projection_Location=glGetUniformLocation(R->Shader->Program,"projection");

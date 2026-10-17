@@ -4,6 +4,7 @@
 #include "../platform/rendering/renderer.h"
 #include "events/dmagh_events.h"
 #include "input.h"
+#include "../gui/gui.h"
 typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
@@ -12,6 +13,7 @@ typedef struct dmagh_layer_data{
     curve_array* Curve_Array;
     int i;
     uint8_t Paused;
+    gui_ctx Ctx;
 } dmagh_layer_data;
 
 int dmagh_on_window_destroyed(window_destroyed* E,application* app){
@@ -39,6 +41,9 @@ void dmagh_on_attach(layer* self){
     Data->i=0;
     begin_curve(Data->Curve_Array,(curve_point){{0.0f,0.0f},{100.0f,850.0f},50,{1.0f,0.0f,0.5f,1.0f},{300.0f,100.0f}});
     end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{700.0f,100.0f},{800.0f,850.0f},1,{0.0f,0.5f,1.0f,1.0f},{0.0f,0.0f}});
+    
+    Data->Ctx.User_Data=Data->Renderer;
+    Data->Ctx.Draw_Quad=draw_quad;
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -69,6 +74,9 @@ void render_callback(layer* self, void* ctx){
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    start_gui_frame(&Data->Ctx);
+    begin_panel(&Data->Ctx,"Test",0,0,128,250,0);
+    end_panel(&Data->Ctx);
     end_frame(Data->Renderer);
     render_window(Data->Window);
 }
