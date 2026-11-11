@@ -65,3 +65,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cglm)    
 target_link_libraries(dmagh PRIVATE cglm)
+
+
+FetchContent_Declare(
+    stb
+    GIT_REPOSITORY https://github.com/nothings/stb/
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(stb)
+target_include_directories(dmagh PRIVATE "${stb_SOURCE_DIR}")

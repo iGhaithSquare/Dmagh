@@ -2,6 +2,7 @@
 #include "quad_renderer_opengl3.3.h"
 #include "curve_renderer_opengl3.3.h"
 #include <stdlib.h>
+#include "st"
 #include <gaven.h>
 #include "../../../core/events/dmagh_events.h"
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char){
@@ -65,6 +66,7 @@ void* create_renderer(int width, int height,int Quad_Cap){
     renderer_api* R=(renderer_api*)malloc(sizeof(renderer_api));
     R->Width=width;
     R->Height=height;
+    R->is_minimized=0;
     GLenum Result =glewInit();
     GAVEN_ASSERT(!Result,"GLEW initialization failed: %s",(const char*)glewGetErrorString(Result));
     R->Curve_Renderer = create_curve_renderer(R);

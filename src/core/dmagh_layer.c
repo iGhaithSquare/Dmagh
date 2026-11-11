@@ -44,6 +44,10 @@ void dmagh_on_attach(layer* self){
     
     Data->Ctx.User_Data=Data->Renderer;
     Data->Ctx.Draw_Quad=draw_quad;
+    Data->Ctx.Draw_List_Cap=0;
+    Data->Ctx.theme_r=0.05f;
+    Data->Ctx.theme_g=0.07f;
+    Data->Ctx.theme_b=0.1f;
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -76,7 +80,7 @@ void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     start_gui_frame(&Data->Ctx);
     begin_panel(&Data->Ctx,"Test",0,0,128,250,0);
-    end_panel(&Data->Ctx);
+    end_gui_frame(&Data->Ctx);
     end_frame(Data->Renderer);
     render_window(Data->Window);
 }
