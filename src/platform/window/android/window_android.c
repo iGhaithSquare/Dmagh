@@ -2,7 +2,7 @@
 #include <android/native_window.h>
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
-#include "../../../core/events/window_events.h"
+#include "../../../core/events/dmagh_events.h"
 #include <stdlib.h>
 #include "../../../core/dmagh_layer.h"
 #ifdef DMAGH_RENDERER_OPENGLES3_2

@@ -14,6 +14,7 @@ typedef struct dmagh_layer_data{
     int i;
     uint8_t Paused;
     gui_ctx Ctx;
+    int Width,Height;
 } dmagh_layer_data;
 
 int dmagh_on_window_destroyed(window_destroyed* E,application* app){
@@ -24,20 +25,29 @@ int dmagh_on_window_pause(window_pause* E,dmagh_layer_data* Data){
     Data->Paused=E->state;
     return 1;
 }
+int dmagh_window_resize(window_resize* E,dmagh_layer_data* Data){
+    if(E->height&&E->width){
+        Data->Width=E->width;
+        Data->Height=E->height;
+    }
+    return 0;
+}
 void dmagh_on_event(layer* self, event* Event){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
     EVENT_DISPATCH_V(Event,window_pause,dmagh_on_window_pause,Data);
+    EVENT_DISPATCH_V(Event,window_resize,dmagh_window_resize,Data);
     input_on_event(Event);
     renderer_onEvent(Data->Renderer,Event);
 } 
 void dmagh_on_attach(layer* self){
-    int width=1280,height=720;
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    init_input_system(width,height);
+    Data->Width=1280;
+    Data->Height=720;
+    init_input_system(Data->Width,Data->Height);
     Data->Curve_Array=create_curve_array();
-    Data->Window=create_window(&width,&height);
-    Data->Renderer=create_renderer(width,height,128);
+    Data->Window=create_window(&Data->Width,&Data->Height);
+    Data->Renderer=create_renderer(Data->Width,Data->Height,128);
     Data->i=0;
     begin_curve(Data->Curve_Array,(curve_point){{0.0f,0.0f},{100.0f,850.0f},50,{1.0f,0.0f,0.5f,1.0f},{300.0f,100.0f}});
     end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{700.0f,100.0f},{800.0f,850.0f},1,{0.0f,0.5f,1.0f,1.0f},{0.0f,0.0f}});
@@ -45,9 +55,9 @@ void dmagh_on_attach(layer* self){
     Data->Ctx.User_Data=Data->Renderer;
     Data->Ctx.Draw_Quad=draw_quad;
     Data->Ctx.Draw_List_Cap=0;
-    Data->Ctx.theme_r=0.05f;
-    Data->Ctx.theme_g=0.07f;
-    Data->Ctx.theme_b=0.1f;
+    glm_vec3_copy((vec3){0.09f,0.09f,0.13f},Data->Ctx.Primary_Color);
+    glm_vec3_copy((vec3){0.1f,0.1f,0.15f},Data->Ctx.Secondary_Color);
+
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -72,14 +82,20 @@ void render_callback(layer* self, void* ctx){
     begin_frame(Data->Renderer);
     int x=get_mouse_x();
     int y=get_mouse_y();
-    draw_quad(Data->Renderer,x,y,128,256,1.0f,0.0f,0.0f,1.0f);
-    draw_quad(Data->Renderer,202,402,256,128,0.0f,1.0f,1.0f,1.0f);
+    draw_quad(Data->Renderer,x,y,1,128,256,1.0f,0.0f,0.0f,1.0f);
+    draw_quad(Data->Renderer,202,402,1,256,128,0.0f,1.0f,1.0f,1.0f);
     draw_curve_array(Data->Renderer,Data->Curve_Array);
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    int width=Data->Width/4;
+    int height=Data->Height/3;
     start_gui_frame(&Data->Ctx);
-    begin_panel(&Data->Ctx,"Test",0,0,128,250,0);
+    //dont forget splits verticle horizontal, easy panels.
+    begin_panel(&Data->Ctx,"Left",0,height,width,height*2,0);
+    begin_panel(&Data->Ctx,"Right",width*3,0,width,Data->Height,0);
+    begin_panel(&Data->Ctx,"ViewPort",width,height,width*2,height*2,0);
+    begin_panel(&Data->Ctx,"Bottom",0,0,width*3,height,0);
     end_gui_frame(&Data->Ctx);
     end_frame(Data->Renderer);
     render_window(Data->Window);

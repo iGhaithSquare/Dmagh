@@ -2,7 +2,6 @@
 #include "quad_renderer_opengl3.3.h"
 #include "curve_renderer_opengl3.3.h"
 #include <stdlib.h>
-#include "st"
 #include <gaven.h>
 #include "../../../core/events/dmagh_events.h"
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char){
@@ -159,6 +158,7 @@ int opengl3_3_window_resize(window_resize* E,renderer_api* R){
         else{
             glm_perspective(glm_rad(60.0f),(float)R->Width/(float)R->Height,0.1f,100.0f,R->Uniform_Projection);
         }
+        glm_ortho(0.0f,R->Width,0.0f,R->Height,100.0f,1.0f,R->Quad_Renderer->Uniform_Projection);
         glViewport(0,0,R->Width,R->Height);
     }
     else

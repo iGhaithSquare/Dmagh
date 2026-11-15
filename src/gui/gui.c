@@ -63,7 +63,10 @@ void end_gui_frame(gui_ctx* ctx){
         switch (ctx->Draw_List_Types[current]){
         case GUI_DRAW_PANEL:{
             struct gui_panel *P=ctx->Draw_List_Elements[current];
-            ctx->Draw_Quad(ctx->User_Data,P->x,P->y,P->width,P->height,ctx->theme_r,ctx->theme_g,ctx->theme_b,1.0f);
+            ctx->Draw_Quad(ctx->User_Data,P->x,P->y,current+0.5f,P->width,P->height,ctx->Primary_Color[0],ctx->Primary_Color[1],ctx->Primary_Color[2],1.0f);
+            if(P->width>20&&P->height>20){
+                ctx->Draw_Quad(ctx->User_Data,P->x+10,P->y+10,current+1.0f,P->width-20,P->height-20,ctx->Secondary_Color[0],ctx->Secondary_Color[1],ctx->Secondary_Color[2],1.0f);
+            }
             break;
         }
 

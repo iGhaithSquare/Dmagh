@@ -37,7 +37,10 @@ quad_renderer* create_quad_renderer(renderer_api* renderer,int Quad_Cap){
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
-
+    mat4 Uniform_View;
+    glm_mat4_copy((mat4){1.0f,0.0f,0.0f,0.0f,0.0f,1.0f,0.0f,0.0f,0.0f,0.0f,-1.0f,0.0f,0.0f,0.0f,0.0f,1.0f},Uniform_View);
+    glm_ortho(0.0f,renderer->Width,0.0f,renderer->Height,100.0f,0.1f,R->Uniform_Projection);
+    
     const char *vs_src=  "#version 320 es\n"
                                     "layout(location = 0) in vec3 aPos;\n"
                                     "layout(location = 1) in vec4 aColor;\n"
@@ -60,8 +63,9 @@ quad_renderer* create_quad_renderer(renderer_api* renderer,int Quad_Cap){
                                     "   color=v_Color;\n"
                                     "}";
     R->Shader = create_shader(vs_src,fs_src,NULL);
+    use_shader(R->Shader);
     R->Uniform_Projection_Location=glGetUniformLocation(R->Shader->Program,"projection");
-    R->Uniform_View_Location=glGetUniformLocation(R->Shader->Program,"view");
+    glUniformMatrix4fv(glGetUniformLocation(R->Shader->Program,"view"),1,GL_FALSE,(float*)Uniform_View);
     return R;
 }
 void destroy_quad_renderer(quad_renderer* renderer){
@@ -73,7 +77,7 @@ void destroy_quad_renderer(quad_renderer* renderer){
     glDeleteVertexArrays(1,&renderer->VAO);
     free(renderer);
 }
-void draw_quad(void* renderer, int x,int y, int width, int height,float red,float green,float blue,float alpha){
+void draw_quad(void* renderer, int x,int y,float z, int width, int height,float red,float green,float blue,float alpha){
     renderer_api* main=(renderer_api*)renderer;
     quad_renderer *R=main->Quad_Renderer;
     if(R->Indices_Count==R->Indices_Cap-5){
@@ -94,10 +98,10 @@ void draw_quad(void* renderer, int x,int y, int width, int height,float red,floa
     R->Indices[R->Indices_Count++] = R->Vertices_Count+2;
     R->Indices[R->Indices_Count++] = R->Vertices_Count+3;
     
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,-1.0f,red,green,blue,alpha,1.0f,1.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,-1.0f,red,green,blue,alpha,1.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,-1.0f,red,green,blue,alpha,0.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,-1.0f,red,green,blue,alpha,0.0f,1.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,z,red,green,blue,alpha,1.0f,1.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,z,red,green,blue,alpha,1.0f,0.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,z,red,green,blue,alpha,0.0f,0.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,z,red,green,blue,alpha,0.0f,1.0f};
 }
 void begin_frame_quad_renderer(quad_renderer* R){
     R->Vertices_Count=0;
@@ -105,8 +109,7 @@ void begin_frame_quad_renderer(quad_renderer* R){
 }
 void end_frame_quad_renderer(quad_renderer* R){
     use_shader(R->Shader);
-    glUniformMatrix4fv(R->Uniform_Projection_Location,1,GL_FALSE,(float*)R->Renderer_api->Uniform_Projection);
-    glUniformMatrix4fv(R->Uniform_View_Location,1,GL_FALSE,(float*)R->Renderer_api->Uniform_View);
+    glUniformMatrix4fv(R->Uniform_Projection_Location,1,GL_FALSE,(float*)R->Uniform_Projection);
     glBindVertexArray(R->VAO);
     glBindBuffer(GL_ARRAY_BUFFER,R->VBO);
     glBufferData(GL_ARRAY_BUFFER,sizeof(quad_vertex_data)*R->Vertices_Count,R->Vertices_Data,GL_STATIC_DRAW);

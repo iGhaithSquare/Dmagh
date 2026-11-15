@@ -1,6 +1,7 @@
 #ifndef GUI_H
 #define GUI_H
 #include <stdlib.h>
+#include <cglm/cglm.h>
 enum gui_flags{
     GUI_BORDERLESS = 1,
     GUI_MOVABLE = 2,
@@ -27,8 +28,9 @@ struct gui_ctx{
     size_t Draw_List_Cap;
     struct gui_panel Panels[256];
     int Panel_Count;
-    float theme_r,theme_g,theme_b;
-    void (*Draw_Quad)(void* user_data, int x,int y, int width, int height,float red,float green,float blue,float alpha);
+    vec3 Primary_Color;
+    vec3 Secondary_Color;
+    void (*Draw_Quad)(void* user_data, int x,int y,float z, int width, int height,float red,float green,float blue,float alpha);
     void *User_Data;
 };
 typedef struct gui_ctx gui_ctx;

@@ -16,8 +16,7 @@ struct quad_renderer{
     shader* Shader;
 
     GLint Uniform_Projection_Location;
-
-    GLint Uniform_View_Location;
+    mat4 Uniform_Projection;
 
     int* Indices;
     int Indices_Count;
