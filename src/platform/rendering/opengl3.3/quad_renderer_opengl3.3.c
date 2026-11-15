@@ -32,6 +32,8 @@ quad_renderer* create_quad_renderer(renderer_api* renderer,int Quad_Cap){
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,sizeof(quad_vertex_data),(void*)offsetof(quad_vertex_data,u));
     glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(3,1,GL_UNSIGNED_INT,sizeof(quad_vertex_data),(void*)offsetof(quad_vertex_data,texture));
+    glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindVertexArray(0);
@@ -44,26 +46,35 @@ quad_renderer* create_quad_renderer(renderer_api* renderer,int Quad_Cap){
                                     "layout(location = 0) in vec3 aPos;\n"
                                     "layout(location = 1) in vec4 aColor;\n"
                                     "layout(location = 2) in vec2 aUV;\n"
+                                    "layout(location = 3) in uint aTextureID;\n"
                                     "out vec4 v_Color;\n"
                                     "out vec2 v_UV;\n"
+                                    "flat out uint v_TextureID;\n"
                                     "uniform mat4 projection;\n"
                                     "uniform mat4 view;\n"
                                     "void main(){\n"
                                     "   gl_Position=projection*view*vec4(aPos,1.0);\n"
                                     "   v_Color=aColor;\n"
+                                    "   v_TextureID=aTextureID;\n"
                                     "   v_UV=aUV;\n"
                                     "}";
     const char *fs_src=  "#version 330 core\n"
                                     "layout(location = 0) out vec4 color;\n"
                                     "in vec4 v_Color;\n"
                                     "in vec2 v_UV;\n"
+                                    "flat in uint v_TextureID;\n"
+                                    "uniform sampler2D u_Texture;\n"
                                     "void main(){\n"
-                                    "   color=v_Color;\n"
+                                    "   if(v_TextureID!=0u)\n"
+                                    "       color=texture(u_Texture,v_UV)*v_Color;\n"
+                                    "   else\n"
+                                    "       color=v_Color;\n"
                                     "}";
     R->Shader = create_shader(vs_src,fs_src,NULL);
     use_shader(R->Shader);
     R->Uniform_Projection_Location=glGetUniformLocation(R->Shader->Program,"projection");
     glUniformMatrix4fv(glGetUniformLocation(R->Shader->Program,"view"),1,GL_FALSE,(float*)Uniform_View);
+    R->Texture_Location=glGetUniformLocation(R->Shader->Program,"u_Texture");
     return R;
 }
 void destroy_quad_renderer(quad_renderer* renderer){
@@ -96,18 +107,48 @@ void draw_quad(void* renderer, int x,int y,float z, int width, int height,float 
     R->Indices[R->Indices_Count++] = R->Vertices_Count+2;
     R->Indices[R->Indices_Count++] = R->Vertices_Count+3;
     
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,z,red,green,blue,alpha,1.0f,1.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,z,red,green,blue,alpha,1.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,z,red,green,blue,alpha,0.0f,0.0f};
-    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,z,red,green,blue,alpha,0.0f,1.0f};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,z,red,green,blue,alpha,1.0f,1.0f,0};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,z,red,green,blue,alpha,1.0f,0.0f,0};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,z,red,green,blue,alpha,0.0f,0.0f,0};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,z,red,green,blue,alpha,0.0f,1.0f,0};
+}
+void draw_textured_quad(void* renderer,void* texture,int x,int y,float z, int width, int height,float red,float green,float blue,float alpha){
+    renderer_api* main=(renderer_api*)renderer;
+    quad_renderer *R=main->Quad_Renderer;
+    GLuint tex=*(GLuint*)texture;
+    if(R->Indices_Count==R->Indices_Cap-5){
+        R->Indices_Cap*=2;
+        R->Indices=realloc(R->Indices,sizeof(int)*R->Indices_Cap);
+        GAVEN_ASSERT(R->Indices,"Couldnt allocate memory for opengl 3.3 quad renderer index array");
+    }
+    if(R->Vertices_Count==R->Vertices_Cap-3){
+        R->Vertices_Cap*=2;
+        R->Vertices_Data=realloc(R->Vertices_Data,sizeof(quad_vertex_data)*R->Vertices_Cap);
+        GAVEN_ASSERT(R->Vertices_Data,"Couldnt allocate memory for opengl 3.3 quad renderer index array");
+    }
+
+    R->Indices[R->Indices_Count++] = R->Vertices_Count;
+    R->Indices[R->Indices_Count++] = R->Vertices_Count+1;
+    R->Indices[R->Indices_Count++] = R->Vertices_Count+3;
+    R->Indices[R->Indices_Count++] = R->Vertices_Count+1;
+    R->Indices[R->Indices_Count++] = R->Vertices_Count+2;
+    R->Indices[R->Indices_Count++] = R->Vertices_Count+3;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,tex);
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y+height,z,red,green,blue,alpha,1.0f,1.0f,1};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x+width,y,z,red,green,blue,alpha,1.0f,0.0f,1};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y,z,red,green,blue,alpha,0.0f,0.0f,1};
+    R->Vertices_Data[R->Vertices_Count++]=(quad_vertex_data){x,y+height,z,red,green,blue,alpha,0.0f,1.0f,1};
 }
 void begin_frame_quad_renderer(quad_renderer* R){
     R->Vertices_Count=0;
     R->Indices_Count=0;
 }
 void end_frame_quad_renderer(quad_renderer* R){
+    unbind_framebuffer();
     use_shader(R->Shader);
     glUniformMatrix4fv(R->Uniform_Projection_Location,1,GL_FALSE,(float*)R->Uniform_Projection);
+    glUniform1i(R->Texture_Location,0);
     glBindVertexArray(R->VAO);
     glBindBuffer(GL_ARRAY_BUFFER,R->VBO);
     glBufferData(GL_ARRAY_BUFFER,sizeof(quad_vertex_data)*R->Vertices_Count,R->Vertices_Data,GL_STATIC_DRAW);

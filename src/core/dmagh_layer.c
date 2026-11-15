@@ -32,6 +32,12 @@ int dmagh_window_resize(window_resize* E,dmagh_layer_data* Data){
     }
     return 0;
 }
+int dmagh_post_render_window_resize(window_resize* E,dmagh_layer_data* Data){
+    if(E->height&&E->width){
+        Data->Ctx.Framebuffer_Texture=get_framebuffer_texture(Data->Renderer);
+    }
+    return 0;
+}
 void dmagh_on_event(layer* self, event* Event){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
@@ -39,6 +45,8 @@ void dmagh_on_event(layer* self, event* Event){
     EVENT_DISPATCH_V(Event,window_resize,dmagh_window_resize,Data);
     input_on_event(Event);
     renderer_onEvent(Data->Renderer,Event);
+    EVENT_DISPATCH_V(Event,window_resize,dmagh_post_render_window_resize,Data);
+
 } 
 void dmagh_on_attach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -57,6 +65,8 @@ void dmagh_on_attach(layer* self){
     Data->Ctx.Draw_List_Cap=0;
     glm_vec3_copy((vec3){0.09f,0.09f,0.13f},Data->Ctx.Primary_Color);
     glm_vec3_copy((vec3){0.1f,0.1f,0.15f},Data->Ctx.Secondary_Color);
+    Data->Ctx.Framebuffer_Texture=get_framebuffer_texture(Data->Renderer);
+    Data->Ctx.Draw_Textured_Quad=draw_textured_quad;
 
 }
 void dmagh_on_dettach(layer* self){
@@ -82,8 +92,6 @@ void render_callback(layer* self, void* ctx){
     begin_frame(Data->Renderer);
     int x=get_mouse_x();
     int y=get_mouse_y();
-    draw_quad(Data->Renderer,x,y,1,128,256,1.0f,0.0f,0.0f,1.0f);
-    draw_quad(Data->Renderer,202,402,1,256,128,0.0f,1.0f,1.0f,1.0f);
     draw_curve_array(Data->Renderer,Data->Curve_Array);
 }
 void gui_render_callback(layer* self, void* ctx){
@@ -95,6 +103,7 @@ void gui_render_callback(layer* self, void* ctx){
     begin_panel(&Data->Ctx,"Left",0,height,width,height*2,0);
     begin_panel(&Data->Ctx,"Right",width*3,0,width,Data->Height,0);
     begin_panel(&Data->Ctx,"ViewPort",width,height,width*2,height*2,0);
+    set_viewport(&Data->Ctx);
     begin_panel(&Data->Ctx,"Bottom",0,0,width*3,height,0);
     end_gui_frame(&Data->Ctx);
     end_frame(Data->Renderer);

@@ -63,6 +63,7 @@ void use_shader(shader* Shader){
 }
 void* create_renderer(int width, int height,int Quad_Cap){
     renderer_api* R=(renderer_api*)malloc(sizeof(renderer_api));
+    GLenum status;
     R->Width=width;
     R->Height=height;
     R->is_minimized=0;
@@ -81,10 +82,27 @@ void* create_renderer(int width, int height,int Quad_Cap){
     glm_ortho(0.0f,R->Width,0.0f,R->Height,0.1f,100.0f,R->Uniform_Projection);
     glm_mat4_identity(R->Uniform_View);
     glEnable(GL_DEPTH_TEST);
+    glGenFramebuffers(1,&R->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER,R->fbo);
+    glGenRenderbuffers(1,&R->rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER,R->rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,width,height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, R->rbo);  
+    glGenTextures(1,&R->fb_texture);
+    glBindTexture(GL_TEXTURE_2D,R->fb_texture);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,width,height,0,GL_RGB,GL_UNSIGNED_BYTE,NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,R->fb_texture,0);
+    status=glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GAVEN_ASSERT(status==GL_FRAMEBUFFER_COMPLETE,"Couldnt create a framebuffer with status %d",status);
     return R;
 }
 void destroy_renderer(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
+    glDeleteFramebuffers(1,&R->fbo);
+    glDeleteTextures(1,&R->fb_texture);
+    glDeleteRenderbuffers(1,&R->rbo);
     destroy_curve_renderer(R->Curve_Renderer);
     destroy_quad_renderer(R->Quad_Renderer);
     free(R);
@@ -132,7 +150,10 @@ void begin_frame(void* renderer){
     renderer_api* R=(renderer_api*)renderer;
     glClearColor(0.1f,0.1f,0.15f,1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
+    
+    glBindFramebuffer(GL_FRAMEBUFFER,R->fbo);
+    glClearColor(0.1f,0.1f,0.15f,1.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     begin_frame_curve_renderer(R->Curve_Renderer);
 
@@ -145,10 +166,12 @@ void end_frame(void* renderer){
     end_frame_curve_renderer(R->Curve_Renderer);
     end_frame_quad_renderer(R->Quad_Renderer);
 }
-void* get_framebuffer_texture(void){
-    return NULL;
+void* get_framebuffer_texture(void* renderer){
+    return &((renderer_api*)renderer)->fb_texture;
 }
 int opengl3_3_window_resize(window_resize* E,renderer_api* R){
+    GLenum status;
+    GLint Prev;
     if(E->height&&E->width){
         R->is_minimized=0;
         R->Width=E->width;
@@ -159,6 +182,16 @@ int opengl3_3_window_resize(window_resize* E,renderer_api* R){
             glm_perspective(glm_rad(60.0f),(float)R->Width/(float)R->Height,0.1f,100.0f,R->Uniform_Projection);
         }
         glm_ortho(0.0f,R->Width,0.0f,R->Height,100.0f,1.0f,R->Quad_Renderer->Uniform_Projection);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING,&Prev);
+        glBindFramebuffer(GL_FRAMEBUFFER,R->fbo);
+        glBindTexture(GL_TEXTURE_2D,R->fb_texture);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGB,R->Width,R->Height,0,GL_RGB,GL_UNSIGNED_BYTE,NULL);
+        glBindRenderbuffer(GL_RENDERBUFFER,R->rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,R->Width,R->Height);
+        status=glCheckFramebufferStatus(GL_FRAMEBUFFER);
+        GAVEN_ASSERT(status==GL_FRAMEBUFFER_COMPLETE,"Framebuffer couldnt resize: %d",status);
+        glBindFramebuffer(GL_FRAMEBUFFER,Prev);
+        
         glViewport(0,0,R->Width,R->Height);
     }
     else
@@ -168,5 +201,8 @@ int opengl3_3_window_resize(window_resize* E,renderer_api* R){
 void renderer_onEvent(void* renderer,event* Event){
     renderer_api* R=(renderer_api*)renderer;
     EVENT_DISPATCH_V(Event,window_resize,opengl3_3_window_resize,R);
+}
+void unbind_framebuffer(void){
+    glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
 #endif

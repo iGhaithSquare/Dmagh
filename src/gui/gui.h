@@ -31,11 +31,14 @@ struct gui_ctx{
     vec3 Primary_Color;
     vec3 Secondary_Color;
     void (*Draw_Quad)(void* user_data, int x,int y,float z, int width, int height,float red,float green,float blue,float alpha);
+    void (*Draw_Textured_Quad)(void* user_data,void* texture,int x,int y,float z, int width, int height,float red,float green,float blue,float alpha);
     void *User_Data;
+    void *Framebuffer_Texture;
 };
 typedef struct gui_ctx gui_ctx;
 void start_gui_frame(gui_ctx* ctx);
 void begin_panel(gui_ctx* ctx,const char* title,int x,int y,int width, int height,enum gui_flags flags);
+void set_viewport(gui_ctx* ctx);
 void set_panel_layout(gui_ctx* ctx,enum gui_panel_layout panel_layout,int pad_x);
 void end_gui_frame(gui_ctx* ctx);
 void destroy_gui(gui_ctx* ctx);

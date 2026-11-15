@@ -6,6 +6,7 @@ typedef struct quad_vertex_data{
     float x,y,z;
     float r,g,b,a;
     float u,v;
+    GLuint texture;
 } quad_vertex_data;
 struct quad_renderer{
     
@@ -18,6 +19,8 @@ struct quad_renderer{
     GLint Uniform_Projection_Location;
     mat4 Uniform_Projection;
 
+    GLint Texture_Location;
+    
     int* Indices;
     int Indices_Count;
     int Indices_Cap;

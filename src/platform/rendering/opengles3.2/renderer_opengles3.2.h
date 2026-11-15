@@ -20,9 +20,14 @@ typedef struct renderer_api{
     float crx,cry,crz;
     float czoom;
     uint8_t c_ortho;
+
+    GLint fbo;
+    GLint fb_texture;
+    GLint rbo;
 } renderer_api;
 shader* create_shader(const char* vertex_shader_char,const char* fragment_shader_char,const char* geometry_shader_char);
 void destroy_shader(shader* Shader);
 void use_shader(shader* Shader);
+void unbind_framebuffer(void);
 #endif
 #endif
