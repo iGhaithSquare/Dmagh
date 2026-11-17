@@ -5,6 +5,8 @@
 #include "events/dmagh_events.h"
 #include "input.h"
 #include "../gui/gui.h"
+#include "../gui/elements/gui_panel.h"
+#include "../gui/elements/gui_viewport.h"
 typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
@@ -13,7 +15,7 @@ typedef struct dmagh_layer_data{
     curve_array* Curve_Array;
     int i;
     uint8_t Paused;
-    gui_ctx Ctx;
+    gui_ctx *Ctx;
     int Width,Height;
 } dmagh_layer_data;
 
@@ -32,12 +34,6 @@ int dmagh_window_resize(window_resize* E,dmagh_layer_data* Data){
     }
     return 0;
 }
-int dmagh_post_render_window_resize(window_resize* E,dmagh_layer_data* Data){
-    if(E->height&&E->width){
-        Data->Ctx.Framebuffer_Texture=get_framebuffer_texture(Data->Renderer);
-    }
-    return 0;
-}
 void dmagh_on_event(layer* self, event* Event){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
     EVENT_DISPATCH_V(Event,window_destroyed,dmagh_on_window_destroyed,Data->App);
@@ -45,11 +41,12 @@ void dmagh_on_event(layer* self, event* Event){
     EVENT_DISPATCH_V(Event,window_resize,dmagh_window_resize,Data);
     input_on_event(Event);
     renderer_onEvent(Data->Renderer,Event);
-    EVENT_DISPATCH_V(Event,window_resize,dmagh_post_render_window_resize,Data);
+    gui_on_event(Data->Ctx,Event);
 
 } 
 void dmagh_on_attach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    float third=1.0f/3.0f;
     Data->Width=1280;
     Data->Height=720;
     init_input_system(Data->Width,Data->Height);
@@ -59,18 +56,18 @@ void dmagh_on_attach(layer* self){
     Data->i=0;
     begin_curve(Data->Curve_Array,(curve_point){{0.0f,0.0f},{100.0f,850.0f},50,{1.0f,0.0f,0.5f,1.0f},{300.0f,100.0f}});
     end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{700.0f,100.0f},{800.0f,850.0f},1,{0.0f,0.5f,1.0f,1.0f},{0.0f,0.0f}});
+    Data->Ctx=create_gui_ctx(Data->Width,Data->Height,(vec3){0.09f,0.09f,0.13f},(vec3){0.1f,0.1f,0.15f},Data->Renderer,draw_quad,draw_textured_quad,get_framebuffer_texture);
     
-    Data->Ctx.User_Data=Data->Renderer;
-    Data->Ctx.Draw_Quad=draw_quad;
-    Data->Ctx.Draw_List_Cap=0;
-    glm_vec3_copy((vec3){0.09f,0.09f,0.13f},Data->Ctx.Primary_Color);
-    glm_vec3_copy((vec3){0.1f,0.1f,0.15f},Data->Ctx.Secondary_Color);
-    Data->Ctx.Framebuffer_Texture=get_framebuffer_texture(Data->Renderer);
-    Data->Ctx.Draw_Textured_Quad=draw_textured_quad;
-
+    //dont forget splits verticle horizontal, easy panels.
+    begin_panel(Data->Ctx,"Left",0.0f,third,0.25f,2*third,0);
+    begin_panel(Data->Ctx,"Right",0.75f,0.0f,0.25f,1.0f,0);
+    begin_panel(Data->Ctx,"ViewPort",0.25f,third,0.5f,2*third,0);
+    add_gui_viewport(Data->Ctx);
+    begin_panel(Data->Ctx,"Bottom",0.0f,0.0f,0.75f,third,0);
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    destroy_gui(Data->Ctx);
     destroy_window(Data->Window);
     destroy_renderer(Data->Renderer);
     destroy_input_system();
@@ -96,16 +93,7 @@ void render_callback(layer* self, void* ctx){
 }
 void gui_render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    int width=Data->Width/4;
-    int height=Data->Height/3;
-    start_gui_frame(&Data->Ctx);
-    //dont forget splits verticle horizontal, easy panels.
-    begin_panel(&Data->Ctx,"Left",0,height,width,height*2,0);
-    begin_panel(&Data->Ctx,"Right",width*3,0,width,Data->Height,0);
-    begin_panel(&Data->Ctx,"ViewPort",width,height,width*2,height*2,0);
-    set_viewport(&Data->Ctx);
-    begin_panel(&Data->Ctx,"Bottom",0,0,width*3,height,0);
-    end_gui_frame(&Data->Ctx);
+    end_gui_frame(Data->Ctx);
     end_frame(Data->Renderer);
     render_window(Data->Window);
 }
