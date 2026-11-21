@@ -36,6 +36,10 @@ int input_key_released(key_released* Event){
     Input->key_released[Event->base.code]=1;
     return 1;
 }
+int input_key_pressed(key_pressed* Event){
+    Input->key_pressed[Event->base.code]=1;
+    return 1;
+}
 int input_on_mouse_moved(mouse_moved* E){
     Input->mouse_x=E->x;
     Input->mouse_y=Input->height-E->y;
@@ -50,6 +54,7 @@ int input_window_resize(window_resize* E){
 }
 void input_on_event(event* Event){
     EVENT_DISPATCH(Event,key_released,input_key_released);
+    EVENT_DISPATCH(Event,key_pressed,input_key_pressed);
     EVENT_DISPATCH(Event,mouse_moved,input_on_mouse_moved);
     EVENT_DISPATCH(Event,window_resize,input_window_resize);
 }

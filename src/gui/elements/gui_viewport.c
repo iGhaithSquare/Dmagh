@@ -3,13 +3,14 @@
 #include "gui_panel.h"
 void Draw_Gui_Viewport(struct gui_element* Element){
     gui_ctx* ctx=Element->gui_ctx;
+    struct gui_panel* P=(struct gui_panel*)ctx->Draw_List_Elements[Element->draw_order];
     ctx->Draw_Textured_Quad(ctx->User_Data,ctx->Framebuffer_Texture,Element->x*ctx->width,Element->y*ctx->height,Element->z,Element->width*ctx->width,Element->height*ctx->height,1.0f,1.0f,1.0f,1.0f);
 }
 void add_gui_viewport(gui_ctx* Ctx){
     struct gui_element* View;
     int P_Order;
     struct gui_panel *P;
-    GAVEN_ASSERT(Ctx->Draw_List_Count>1,"To set an Element you need to first begin a Panel");
+    GAVEN_ASSERT(Ctx->Draw_List_Count>0,"To set an Element you need to first begin a Panel");
     P_Order=Ctx->Draw_List_Elements[Ctx->Draw_List_Count-1]->draw_order;
     P= (struct gui_panel*)Ctx->Draw_List_Elements[P_Order];
     View=(struct gui_element*)malloc(sizeof(struct gui_element));
@@ -20,11 +21,11 @@ void add_gui_viewport(gui_ctx* Ctx){
     View->Update=NULL;
     View->Destroy=NULL;
     View->gui_ctx=Ctx;
-    View->x=P->base.x+P->pad_x;
-    View->y=P->base.y+P->pad_y;
+    View->x=View->lx=P->pad_x;
+    View->y=View->ly=P->pad_y;
     View->z=(Ctx->Draw_List_Count+1);
-    View->width=P->base.width-P->pad_x*2;
-    View->height=P->base.height-P->pad_y*2;
+    View->width=View->lwidth=1-P->pad_x*2/P->base.width;
+    View->height=View->lheight=1-P->pad_y*2/P->base.height;
     View->draw_order=P_Order;
 
     Ctx->Draw_List_Elements[Ctx->Draw_List_Count]=View;

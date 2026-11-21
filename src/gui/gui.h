@@ -3,13 +3,6 @@
 #include <stdlib.h>
 #include <cglm/cglm.h>
 #include "../core/events/dmagh_events.h"
-
-enum gui_flags{
-    GUI_BORDERLESS = 1,
-    GUI_MOVABLE = 2,
-    GUI_SCALABLE =4,
-    GUI_NO_INPUT =8
-};
 enum gui_panel_layout{
     GUI_PAD_START = 1,
     GUI_PAD_MIDDLE = 2,
@@ -17,11 +10,12 @@ enum gui_panel_layout{
 };
 struct gui_element{
     int draw_order;
+    float lx,ly,lwidth,lheight;
     float x,y,width,height;
     float z;
     struct gui_ctx *gui_ctx;
     void (*Draw)(struct gui_element* Element);
-    void (*Update)(struct gui_element* Element,float delta_time);
+    void (*Update)(struct gui_element* Element,double delta_time);
     void (*Destroy)(struct gui_element* Element);
 };
 void test_and_grow_draw_list(struct gui_ctx* ctx);
@@ -46,5 +40,6 @@ gui_ctx *create_gui_ctx(int width,int height,vec3 Primary_Color,vec3 Secondary_C
 void set_panel_layout(gui_ctx* ctx,enum gui_panel_layout panel_layout,int pad_x);
 void end_gui_frame(gui_ctx* ctx);
 void destroy_gui(gui_ctx* ctx);
-void gui_on_event(gui_ctx* Ctx, event* Event);
+void gui_on_event(gui_ctx* ctx, event* Event);
+void gui_update(gui_ctx* ctx,double dt);
 #endif

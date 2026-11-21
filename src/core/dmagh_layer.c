@@ -4,9 +4,10 @@
 #include "../platform/rendering/renderer.h"
 #include "events/dmagh_events.h"
 #include "input.h"
-#include "../gui/gui.h"
 #include "../gui/elements/gui_panel.h"
 #include "../gui/elements/gui_viewport.h"
+#include "../gui/elements/gui_panel_divider.h"
+#include "key_codes.h"
 typedef struct dmagh_layer_data{
     void* Renderer;
     void* Window;
@@ -58,12 +59,18 @@ void dmagh_on_attach(layer* self){
     end_curve(Data->Curve_Array,&Data->Sample_Curve,(curve_point){{700.0f,100.0f},{800.0f,850.0f},1,{0.0f,0.5f,1.0f,1.0f},{0.0f,0.0f}});
     Data->Ctx=create_gui_ctx(Data->Width,Data->Height,(vec3){0.09f,0.09f,0.13f},(vec3){0.1f,0.1f,0.15f},Data->Renderer,draw_quad,draw_textured_quad,get_framebuffer_texture);
     
-    //dont forget splits verticle horizontal, easy panels.
-    begin_panel(Data->Ctx,"Left",0.0f,third,0.25f,2*third,0);
-    begin_panel(Data->Ctx,"Right",0.75f,0.0f,0.25f,1.0f,0);
-    begin_panel(Data->Ctx,"ViewPort",0.25f,third,0.5f,2*third,0);
+    begin_panel(Data->Ctx,"Bottom",0.0f,0.0f,1.0f,1.0f);
+    add_panel_divider(Data->Ctx,1+2,0.3,0.1,0.4,"Left");
+    add_panel_divider(Data->Ctx,2,0.3,0.1,0.4,"Viewport");
     add_gui_viewport(Data->Ctx);
-    begin_panel(Data->Ctx,"Bottom",0.0f,0.0f,0.75f,third,0);
+    add_panel_divider(Data->Ctx,2,0.7,0.6,0.9,"Right");
+
+    //dont forget splits verticle horizontal, easy panels.
+    //begin_panel(Data->Ctx,"Left",0.0f,third,0.25f,2*third);
+    //begin_panel(Data->Ctx,"Right",0.75f,0.0f,0.25f,1.0f);
+    //begin_panel(Data->Ctx,"ViewPort",0.25f,third,0.5f,2*third);
+    //add_gui_viewport(Data->Ctx);
+    //begin_panel(Data->Ctx,"Bottom",0.0f,0.0f,0.75f,third);
 }
 void dmagh_on_dettach(layer* self){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
@@ -74,15 +81,15 @@ void dmagh_on_dettach(layer* self){
 }
 void polling_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
+    input_polling();
     do {
         poll_window(&Data->Window);
     }while(Data->Paused);
-    input_polling();
 }
 void update_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;
-    rotate_camera(Data->Renderer,0.0f,0.0f,(float)(Data->i)*0.01f);
-    
+    double dt=0.0f;
+    gui_update(Data->Ctx,dt);
 }
 void render_callback(layer* self, void* ctx){
     dmagh_layer_data* Data = (dmagh_layer_data*)self->LayerData;

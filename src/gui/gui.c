@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "elements/gui_panel.h"
 #include <gaven.h>
 gui_ctx *create_gui_ctx(int width, int height,vec3 Primary_Color,vec3 Secondary_Color,void* User_Data,
             void (*Draw_Quad)(void* user_data, int x,int y,float z, int width, int height,float red,float green,float blue,float alpha),
@@ -75,4 +76,20 @@ void destroy_gui(gui_ctx* ctx){
         else free(Elt);
     }
     free(ctx->Draw_List_Elements);
+}
+
+void gui_update(gui_ctx* ctx,double dt){
+    size_t i;
+    for(i=0;i<ctx->Draw_List_Count;i++){
+        struct gui_element* Elt=ctx->Draw_List_Elements[i];
+        if(i!=Elt->draw_order){
+            struct gui_panel *P=(struct gui_panel*)ctx->Draw_List_Elements[Elt->draw_order];
+            Elt->x=Elt->lx+P->base.x;
+            Elt->y=Elt->ly+P->base.y;
+            Elt->width=Elt->lwidth*P->base.width;
+            Elt->height=Elt->lheight*P->base.height;
+        }
+        if(Elt->Update)
+            Elt->Update(Elt,dt);
+    }
 }
